@@ -41,25 +41,27 @@ def evaluate_group(benchmark, seqs, gt_dir, trackers_dir, tracker):
     return {seq: float(np.mean(data[seq]["pedestrian"]["HOTA"]["HOTA"])) for seq in seqs}
 
 
+def evaluate(results_dir, gt_dir):
+    trackers_dir = os.path.dirname(results_dir)
+    tracker = os.path.basename(results_dir)
+
+    scores = {}
+    for benchmark, seqs in GROUPS.items():
+        scores.update(evaluate_group(benchmark, seqs, gt_dir, trackers_dir, tracker))
+    scores["AVERAGE"] = sum(scores.values()) / len(scores)
+
+    report = "\n".join("%-16s %.4f" % (seq, hota) for seq, hota in scores.items())
+    with open(os.path.join(results_dir, "hota.txt"), "w") as f:
+        f.write(report + "\n")
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--results_dir", required=True)
     parser.add_argument("--gt_dir", default="data/sequences")
     args = parser.parse_args()
-
-    trackers_dir = os.path.dirname(args.results_dir)
-    tracker = os.path.basename(args.results_dir)
-
-    scores = {}
-    for benchmark, seqs in GROUPS.items():
-        scores.update(evaluate_group(benchmark, seqs, args.gt_dir, trackers_dir, tracker))
-
-    scores["AVERAGE"] = sum(scores.values()) / len(scores)
-
-    report = "\n".join("%-16s %.4f" % (seq, hota) for seq, hota in scores.items())
-    print(report)
-    with open(os.path.join(args.results_dir, "hota.txt"), "w") as f:
-        f.write(report + "\n")
+    print(evaluate(args.results_dir, args.gt_dir))
 
 
 if __name__ == "__main__":
