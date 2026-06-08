@@ -6,15 +6,20 @@ import numpy as np
 import torch
 from torchreid.reid.utils import FeatureExtractor
 
+_torch_load = torch.load
+torch.load = lambda *a, **k: _torch_load(*a, **{**k, "weights_only": False})
+
 WEIGHTS = {
     "osnet": ("osnet_x0_25", "1Kkx2zW89jq_NETu4u42CFZTMVD5Hwm6e"),
     "osnet_x0_5": ("osnet_x0_5", "1DHgmb6XV4fwG3n-CnCM0zdL9nMsZ9_RF"),
+    "osnet_x1_0": ("osnet_x1_0", "1IosIFlLiulGIjwW3H8uMRmx3MzPwf86x"),
+    "osnet_ain": ("osnet_ain_x1_0", "1nIrszJVYSHf3Ej8-j6DTFdWz8EnO42PB"),
 }
 
 
 class OsnetReid:
-    def __init__(self, model_name, file_id):
-        path = os.path.join("resources/networks", model_name + "_msmt17.pth")
+    def __init__(self, name, model_name, file_id):
+        path = os.path.join("resources/networks", name + ".pth")
         if not os.path.exists(path):
             os.makedirs("resources/networks", exist_ok=True)
             gdown.download(id=file_id, output=path, quiet=False)
@@ -36,4 +41,4 @@ class OsnetReid:
 
 def build_reid(name):
     model_name, file_id = WEIGHTS[name]
-    return OsnetReid(model_name, file_id)
+    return OsnetReid(name, model_name, file_id)
