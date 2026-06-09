@@ -2,6 +2,11 @@
 
 Original Deep SORT with swappable, modern detectors and re-ID models. Beats the original on the MOT test videos.
 
+## The two archives
+
+- `deepsort-mod.zip` — the code (this repository, zipped). Upload it in Colab.
+- `sequences.zip` — the six test videos in MOT format (frames + ground truth), ready to use. Keep it in Google Drive.
+
 ## Run on Colab
 
 1. Put `sequences.zip` in your Google Drive (`My Drive`).
@@ -36,8 +41,3 @@ python generate_videos.py --mot_dir=data/sequences --result_dir=results/best --o
 Detectors: `yolov8n`, `yolov8s`, `rtdetr`, `fasterrcnn`, `yolov8s-seg`.
 Re-ID: `osnet`, `osnet_x0_5`, `osnet_x1_0`, `osnet_ain`.
 
-## Report
-
-```
-typst compile report/report.typ report/report.pdf
-```
