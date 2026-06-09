@@ -38,11 +38,33 @@ class TorchvisionDetector:
         return np.array(boxes, dtype=np.float32).reshape(-1, 5)
 
 
+class SegDetector:
+    def __init__(self, weights, conf):
+        self.model = YOLO(weights)
+        self.conf = conf
+        self.masks = []
+
+    def detect(self, image):
+        result = self.model.predict(image, classes=[0], conf=self.conf,
+                                    retina_masks=True, verbose=False)[0]
+        boxes, masks = [], []
+        if result.masks is not None:
+            data = result.masks.data.cpu().numpy()
+            for i, box in enumerate(result.boxes):
+                x1, y1, x2, y2 = box.xyxy[0].tolist()
+                boxes.append([x1, y1, x2 - x1, y2 - y1, float(box.conf[0])])
+                masks.append(data[i] > 0.5)
+        self.masks = masks
+        return np.array(boxes, dtype=np.float32).reshape(-1, 5)
+
+
 DETECTORS = {
     "yolov8n": lambda conf: UltralyticsDetector(YOLO("yolov8n.pt"), conf),
     "yolov8s": lambda conf: UltralyticsDetector(YOLO("yolov8s.pt"), conf),
     "rtdetr": lambda conf: UltralyticsDetector(RTDETR("rtdetr-l.pt"), conf),
     "fasterrcnn": lambda conf: TorchvisionDetector(conf),
+    "yolov8n-seg": lambda conf: SegDetector("yolov8n-seg.pt", conf),
+    "yolov8s-seg": lambda conf: SegDetector("yolov8s-seg.pt", conf),
 }
 
 

@@ -28,7 +28,7 @@ def load_gt(seq_dir, name):
 
 
 def run(sequence_dir, output_file, detector, reid, nms_max_overlap,
-        max_cosine_distance, nn_budget, max_age, n_init, gt_frames=None):
+        max_cosine_distance, nn_budget, max_age, n_init, gt_frames=None, mask=False):
     images = sorted(glob.glob(os.path.join(sequence_dir, "img1", "*.jpg")))
     frames = {int(os.path.splitext(os.path.basename(p))[0]): p for p in images}
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
@@ -40,9 +40,11 @@ def run(sequence_dir, output_file, detector, reid, nms_max_overlap,
         start = time.time()
         if gt_frames is not None:
             boxes = gt_frames.get(frame_idx, np.empty((0, 5), dtype=np.float32))
+            masks = None
         else:
             boxes = detector.detect(image)
-        features = reid.extract(image, boxes)
+            masks = detector.masks if mask else None
+        features = reid.extract(image, boxes, masks)
         detections = [Detection(boxes[i, :4], boxes[i, 4], features[i]) for i in range(len(boxes))]
         bboxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.confidence for d in detections])
@@ -75,6 +77,7 @@ def main():
     parser.add_argument("--nn_budget", type=int, default=100)
     parser.add_argument("--max_age", type=int, default=30)
     parser.add_argument("--n_init", type=int, default=3)
+    parser.add_argument("--mask", action="store_true")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -85,7 +88,7 @@ def main():
         output_file = os.path.join(args.output_dir, sequence + ".txt")
         gt_frames = load_gt(sequence_dir, sequence) if args.use_gt else None
         fps = run(sequence_dir, output_file, detector, reid, args.nms_max_overlap,
-                  args.max_cosine_distance, args.nn_budget, args.max_age, args.n_init, gt_frames)
+                  args.max_cosine_distance, args.nn_budget, args.max_age, args.n_init, gt_frames, args.mask)
         print("%s: %.1f FPS" % (sequence, fps))
 
     print(evaluate(args.output_dir, args.mot_dir))

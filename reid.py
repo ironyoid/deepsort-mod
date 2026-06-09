@@ -26,13 +26,16 @@ class OsnetReid:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.extractor = FeatureExtractor(model_name=model_name, model_path=path, device=device)
 
-    def extract(self, image, boxes):
+    def extract(self, image, boxes, masks=None):
         if len(boxes) == 0:
             return np.empty((0, 512), dtype=np.float32)
         crops = []
-        for x, y, w, h in boxes[:, :4]:
+        for i, (x, y, w, h) in enumerate(boxes[:, :4]):
             x1, y1 = max(0, int(x)), max(0, int(y))
-            crop = image[y1:int(y + h), x1:int(x + w)]
+            x2, y2 = int(x + w), int(y + h)
+            crop = image[y1:y2, x1:x2]
+            if masks is not None:
+                crop = crop * masks[i][y1:y2, x1:x2, None]
             if crop.size == 0:
                 crop = np.zeros((1, 1, 3), dtype=np.uint8)
             crops.append(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
