@@ -41,7 +41,7 @@ def evaluate_group(benchmark, seqs, gt_dir, trackers_dir, tracker):
     return {seq: float(np.mean(data[seq]["pedestrian"]["HOTA"]["HOTA"])) for seq in seqs}
 
 
-def evaluate(results_dir, gt_dir):
+def compute(results_dir, gt_dir):
     trackers_dir = os.path.dirname(results_dir)
     tracker = os.path.basename(results_dir)
 
@@ -49,7 +49,11 @@ def evaluate(results_dir, gt_dir):
     for benchmark, seqs in GROUPS.items():
         scores.update(evaluate_group(benchmark, seqs, gt_dir, trackers_dir, tracker))
     scores["AVERAGE"] = sum(scores.values()) / len(scores)
+    return scores
 
+
+def evaluate(results_dir, gt_dir):
+    scores = compute(results_dir, gt_dir)
     report = "\n".join("%-16s %.4f" % (seq, hota) for seq, hota in scores.items())
     with open(os.path.join(results_dir, "hota.txt"), "w") as f:
         f.write(report + "\n")

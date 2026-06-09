@@ -3,7 +3,9 @@ import os
 
 import cv2
 import numpy as np
-from sklearn.metrics import calinski_harabasz_score, silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import calinski_harabasz_score, fowlkes_mallows_score, silhouette_score
+from sklearn.preprocessing import normalize
 
 from reid import build_reid
 
@@ -33,16 +35,20 @@ def main():
     args = parser.parse_args()
 
     reid = build_reid(args.reid)
-    sils, chs = [], []
-    print("%-16s %12s %14s" % ("sequence", "Silhouette", "Calinski-H"))
+    sils, chs, fms = [], [], []
+    print("%-16s %12s %14s %14s" % ("sequence", "Silhouette", "Calinski-H", "Fowlkes-M"))
     for name in sorted(os.listdir(args.mot_dir)):
         features, labels = sequence_features(os.path.join(args.mot_dir, name), name, reid)
         sil = silhouette_score(features, labels, metric="cosine")
         ch = calinski_harabasz_score(features, labels)
+        clusters = KMeans(n_clusters=len(set(labels)), n_init=3, random_state=0).fit_predict(normalize(features))
+        fm = fowlkes_mallows_score(labels, clusters)
         sils.append(sil)
         chs.append(ch)
-        print("%-16s %12.4f %14.1f" % (name, sil, ch))
-    print("%-16s %12.4f %14.1f" % ("AVERAGE", sum(sils) / len(sils), sum(chs) / len(chs)))
+        fms.append(fm)
+        print("%-16s %12.4f %14.1f %14.4f" % (name, sil, ch, fm))
+    print("%-16s %12.4f %14.1f %14.4f" % (
+        "AVERAGE", sum(sils) / len(sils), sum(chs) / len(chs), sum(fms) / len(fms)))
 
 
 if __name__ == "__main__":
