@@ -9,6 +9,8 @@
   #text(11pt)[Deep learning for computer vision]
   #v(2pt)
   #text(10pt)[HSE, 2025/2026]
+  #v(4pt)
+  #text(10pt)[#link("https://github.com/ironyoid/deepsort-mod")[github.com/ironyoid/deepsort-mod]]
 ]
 
 #v(8pt)
@@ -62,7 +64,7 @@ First I measured the original with it's `mars-small128` appearance model. This i
 
 = Choosing a detector
 
-I tried three detectors: YOLOv8n and RT-DETR (from Ultralytics) and Faster R-CNN (from torchvision).
+I tried three detectors: YOLOv8n, RT-DETR (Ultralytics) and Faster R-CNN (torchvision).
 That's three models from two different libraries. YOLO came out best, both on detection quality and on
 the final HOTA.
 
@@ -199,7 +201,6 @@ Overall, swapping in modern models and tuning them raised the average HOTA from 
 one setting, or 0.5796 with per-video settings — and it beats the original on every video while still
 running in real time.
 
-A few takeaways:
 - My best setup is yolov8s + osnet_x1_0 with confidence 0.5, max-cosine-distance 0.3, max-age 60.
 - The detector matters most. With perfect boxes the HOTA is around 0.85, so the detector is the main
   limit, not the re-ID model.
