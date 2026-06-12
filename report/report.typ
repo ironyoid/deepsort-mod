@@ -44,7 +44,7 @@ I use three kinds of measurement:
 
 = How the system is put together
 
-Every frame goes through three steps: a detector finds the people (boxes), a re-ID model turns each
+Every frame goes through three steps: a detector finds the people, a re-ID model turns each
 box into a 512-number "fingerprint", and the original Deep SORT tracker assigns the IDs. I pick the detector and re-ID model by name before running, so I
 can test any combination.
 
